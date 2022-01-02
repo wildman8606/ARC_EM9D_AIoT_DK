@@ -869,25 +869,6 @@ void InitGPIOSetup(uint8_t interface)
 	return;
 }
 
-void TestGPIO(uint8_t interface)
-{
-	printf("into %s-%d\r\n", __func__, __LINE__);
-	//int gpio_state1;
-	//int_flag=0;
-	//temp_iir=0;
-	//gpio_a_int_flag=0;
-	//gpio_b_int_flag=0;
-	//temp_gpio_state=0;
-	
-	//gpio_state1 = GPIOGetPinState(interface, CH_A, GPIO7);
-	//printf("752 GPIO[7] : %d\r\n", gpio_state1);
-	GPIOSetPinState(interface, CH_A, GPIO1, 1);
-	GPIOSetPinState(interface, CH_A, GPIO0, 0);
-	board_delay_ms(300);
-	GPIOSetPinState(interface, CH_A, GPIO1, 0);
-	GPIOSetPinState(interface, CH_A, GPIO0, 1);
-	
-}
 
 void message_receive(uint8_t interface, uint8_t *mes, uint16_t wait)
 {

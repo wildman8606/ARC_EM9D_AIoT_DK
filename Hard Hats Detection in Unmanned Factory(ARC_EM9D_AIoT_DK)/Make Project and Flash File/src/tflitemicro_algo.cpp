@@ -115,7 +115,7 @@ extern "C" int tflitemicro_algo_run(uint8_t * ptr_image)
 	{
 		error_reporter->Report("[%d]: %d", i, results_ptr[i]);
 		sprintf(str_buf, "[%d]: %d \r\n", i, results_ptr[i]);
-		//uart1_ptr->uart_write(str_buf, strlen(str_buf));
+		uart1_ptr->uart_write(str_buf, strlen(str_buf));
 		board_delay_ms(10);
 
 		if ((results_ptr[i] > 0) && (maxScore < results_ptr[i]))
