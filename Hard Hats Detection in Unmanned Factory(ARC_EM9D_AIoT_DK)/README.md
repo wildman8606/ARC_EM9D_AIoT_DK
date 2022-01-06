@@ -1,7 +1,7 @@
 # Case4-Hard Hats Detection in Unmanned Factory
 ## Model Training        
 訓練模型  
- |--tensorflowlite.py    訓練模型所之py檔案  
+ |--tensorflowlite.py    訓練模型所需py檔案  
  |--model.tflite         輸出tensorflow-lite檔案  
  |--model.h              轉換後2進制檔案  
  |--models.h5            模型保存檔案，可看結構  
