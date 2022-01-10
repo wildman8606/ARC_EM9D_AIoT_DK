@@ -4,15 +4,14 @@ xxd -i model.tflite > model.h
 '''
 
 import os
-# 防止Tensorflow運行GPU內存不足造成Error
 from tensorflow.compat.v1 import ConfigProto
 from tensorflow.compat.v1 import InteractiveSession
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ['CUDA_VISIBLE_DEVICES'] = "0"  #選擇gpu
+os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 config = ConfigProto()
-config.allow_soft_placement=True #如果你指定的設備不存在，允許TF自動分配
-config.gpu_options.per_process_gpu_memory_fraction=0.9  #分配百分之90
-config.gpu_options.allow_growth = True   #按需分配顯存，重要
+config.allow_soft_placement=True
+config.gpu_options.per_process_gpu_memory_fraction=0.9
+config.gpu_options.allow_growth = True
 session = InteractiveSession(config=config)
 
 from tensorflow import keras
@@ -43,7 +42,6 @@ img_width = 32
 img_height = 32
 train_data_dir = '../Training Data/'
 
-#datagen = ImageDataGenerator(validation_split=0.1)
 datagen = ImageDataGenerator()
 
 train_generator =datagen.flow_from_directory(directory=train_data_dir,
@@ -63,7 +61,7 @@ print(y_train.shape)
 x_train = x_train.astype(np.float32)
 y_train = y_train.astype(np.float32)
 
-# Normalize
+# step.1: Normalize
 #int8   : -128 ~ 127
 '''
 def thinning(image):
@@ -84,7 +82,7 @@ print(np.info(x_train))
 print(x_train.shape)
 print(y_train.shape)
 
-# step-2 : build model
+# step.2: Build Model
 model =Sequential()
 
 model.add(Conv2D(8,(3,3), input_shape=(img_width, img_height, 1)))
@@ -97,10 +95,10 @@ model.add(Activation('tanh'))
 model.add(Dense(1))
 model.add(Activation('softmax'))
 
-model.compile(loss='binary_crossentropy',optimizer='rmsprop',metrics=['accuracy']) #rmsprop #Adam(1e-2)
+model.compile(loss='binary_crossentropy',optimizer='rmsprop',metrics=['accuracy'])
 print('model complied!!')
 
-lr_reducer = ReduceLROnPlateau(monitor='loss', #val_loss
+lr_reducer = ReduceLROnPlateau(monitor='loss',
                            factor=np.sqrt(0.1),
                            verbose=1,
                            cooldown=1,
@@ -108,24 +106,27 @@ lr_reducer = ReduceLROnPlateau(monitor='loss', #val_loss
                            min_lr=1e-10)
 
 
-earlystop = EarlyStopping(monitor='val_loss', min_delta=0, patience=7, verbose=0, mode='auto', baseline=None, restore_best_weights=False)
+earlystop = EarlyStopping(monitor='loss', min_delta=0, patience=7, verbose=0, mode='auto', baseline=None, restore_best_weights=False)
 
 callbacks = [lr_reducer, earlystop]
 
+# step.3: Training Model
 print('starting training....')
 history = model.fit(x_train,y_train,
                   batch_size=batch_size,
                   epochs=epochs,
-                  validation_split=0.1,
                   shuffle=True,
                   verbose=1,
                   callbacks=callbacks)
 
 print('training finished!!')
+
+model.evaluate(x_train, y_train)
+
 print('saving models.h5')
 model.save_weights('models.h5')
 
-#TFLiteConverter
+# step.4: TFLite Converter
 image_shape = (img_width, img_width, 1)
 def representative_dataset_gen():
     num_calibration_images = 2
@@ -147,19 +148,10 @@ tflite_model = converter.convert()
 with open('model.tflite', 'wb') as f:
     f.write(tflite_model)
 
-
 interpreter = tf.lite.Interpreter(model_content=tflite_model)
 input_type = interpreter.get_input_details()[0]['dtype']
 print('input: ', input_type)
 output_type = interpreter.get_output_details()[0]['dtype']
 print('output: ', output_type)
 
-#print('Done!!!')
-
-K.clear_session() 
-build_model = model
-del model
-tf.compat.v1.reset_default_graph()
-print('------- 結束 -------')
-'''
-'''
+print('Done!!!')
